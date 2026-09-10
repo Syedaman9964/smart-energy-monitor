@@ -1,0 +1,276 @@
+/* ==========================================================================
+   WATTVISION — MASTER DESIGN SYSTEM & CSS VARIABLES
+   Sophisticated Graphite Grey + Soft Silver + Restrained Light Gold
+   Dual Theme Architecture: Flagship Dark Mode (Default) & Refined Light Mode
+   ========================================================================== */
+
+:root {
+  /* ========================================================================
+     TYPOGRAPHY & GEOMETRY (THEME AGNOSTIC)
+     ======================================================================== */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Outfit', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Spacing Scale */
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+
+  /* Border Radii */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Glass Blur */
+  --glass-blur: blur(16px);
+  --glass-blur-sm: blur(8px);
+
+  /* Motion & Easings */
+  --ease-out-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-smooth: 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ========================================================================
+     DEFAULT FLAGSHIP EXPERIENCE: DARK GRAPHITE & METALLIC LIGHT GOLD
+     ======================================================================== */
+  --bg-app: #121519;
+  --bg-header: rgba(21, 25, 32, 0.88);
+  --bg-card: #181d24;
+  --bg-card-hover: #1f2530;
+  --bg-card-elevated: #232a36;
+  --bg-card-solid: #181d24;
+  --bg-surface-secondary: #151920;
+  --bg-surface-tertiary: #222935;
+  --bg-surface-input: #14181f;
+  --bg-surface-active: #27303e;
+
+  /* Borders & Dividers */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-subtle-rgb: 255, 255, 255;
+  --border-hover: rgba(212, 175, 55, 0.35);
+  --border-focus: #d4af37;
+  --border-gold: rgba(212, 175, 55, 0.32);
+  --border-silver: rgba(255, 255, 255, 0.14);
+
+  /* Text & Typography */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+  --text-gold: #e2c46c;
+
+  /* Signature Light Gold Energy Accent */
+  --color-gold: #d4af37;
+  --color-gold-hover: #e5c875;
+  --color-gold-light: #f3df9b;
+  --color-gold-glow: rgba(212, 175, 55, 0.16);
+  --color-gold-subtle: rgba(212, 175, 55, 0.08);
+  --color-gold-border: rgba(212, 175, 55, 0.3);
+  --color-gold-surface: rgba(212, 175, 55, 0.06);
+
+  /* WattVision Primary Energy Anchor (Gold Signature) */
+  --color-energy: #d4af37;
+  --color-energy-glow: rgba(212, 175, 55, 0.16);
+
+  /* Electrical Parameter Accents (Calm & Cohesive) */
+  --color-voltage: #60a5fa;
+  --color-voltage-glow: rgba(96, 165, 250, 0.12);
+
+  --color-current: #a78bfa;
+  --color-current-glow: rgba(167, 139, 250, 0.12);
+
+  --color-power: #d4af37;
+  --color-power-glow: rgba(212, 175, 55, 0.16);
+
+  --color-frequency: #38bdf8;
+  --color-frequency-glow: rgba(56, 189, 248, 0.12);
+
+  --color-powerfactor: #f472b6;
+  --color-powerfactor-glow: rgba(244, 114, 182, 0.12);
+
+  /* Status Accents (Restrained, Commercial Grade) */
+  --color-success: #10b981;
+  --color-success-bg: rgba(16, 185, 129, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-danger: #ef4444;
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-info: #38bdf8;
+  --color-info-bg: rgba(56, 189, 248, 0.12);
+
+  /* Shadows - Deep Graphite Depth */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.28);
+  --shadow-glow-gold: 0 0 20px rgba(212, 175, 55, 0.18);
+  --shadow-glow-green: 0 0 16px rgba(16, 185, 129, 0.18);
+  --shadow-glow-amber: 0 0 16px rgba(212, 175, 55, 0.18);
+}
+
+/* ==========================================================================
+   EXPLICIT DARK MODE (IDENTICAL TO ROOT FLAGSHIP)
+   ========================================================================== */
+[data-theme-mode="dark"] {
+  --bg-app: #121519;
+  --bg-header: rgba(21, 25, 32, 0.88);
+  --bg-card: #181d24;
+  --bg-card-hover: #1f2530;
+  --bg-card-elevated: #232a36;
+  --bg-card-solid: #181d24;
+  --bg-surface-secondary: #151920;
+  --bg-surface-tertiary: #222935;
+  --bg-surface-input: #14181f;
+  --bg-surface-active: #27303e;
+
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-subtle-rgb: 255, 255, 255;
+  --border-hover: rgba(212, 175, 55, 0.35);
+  --border-focus: #d4af37;
+  --border-gold: rgba(212, 175, 55, 0.32);
+  --border-silver: rgba(255, 255, 255, 0.14);
+
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #0f172a;
+  --text-gold: #e2c46c;
+
+  --color-gold: #d4af37;
+  --color-gold-hover: #e5c875;
+  --color-gold-light: #f3df9b;
+  --color-gold-glow: rgba(212, 175, 55, 0.16);
+  --color-gold-subtle: rgba(212, 175, 55, 0.08);
+  --color-gold-border: rgba(212, 175, 55, 0.3);
+  --color-gold-surface: rgba(212, 175, 55, 0.06);
+
+  --color-energy: #d4af37;
+  --color-energy-glow: rgba(212, 175, 55, 0.16);
+
+  --color-voltage: #60a5fa;
+  --color-voltage-glow: rgba(96, 165, 250, 0.12);
+
+  --color-current: #a78bfa;
+  --color-current-glow: rgba(167, 139, 250, 0.12);
+
+  --color-power: #d4af37;
+  --color-power-glow: rgba(212, 175, 55, 0.16);
+
+  --color-frequency: #38bdf8;
+  --color-frequency-glow: rgba(56, 189, 248, 0.12);
+
+  --color-powerfactor: #f472b6;
+  --color-powerfactor-glow: rgba(244, 114, 182, 0.12);
+
+  --color-success: #10b981;
+  --color-success-bg: rgba(16, 185, 129, 0.12);
+  --color-warning: #f59e0b;
+  --color-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-danger: #ef4444;
+  --color-danger-bg: rgba(239, 68, 68, 0.12);
+  --color-info: #38bdf8;
+  --color-info-bg: rgba(56, 189, 248, 0.12);
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.06);
+  --shadow-card-hover: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.28);
+  --shadow-glow-gold: 0 0 20px rgba(212, 175, 55, 0.18);
+  --shadow-glow-green: 0 0 16px rgba(16, 185, 129, 0.18);
+  --shadow-glow-amber: 0 0 16px rgba(212, 175, 55, 0.18);
+}
+
+/* ==========================================================================
+   REFINED LIGHT MODE (SAME PRODUCT DNA, DAYTIME EDITION)
+   ========================================================================== */
+[data-theme-mode="light"] {
+  --bg-app: #f4f5f7;
+  --bg-header: rgba(255, 255, 255, 0.92);
+  --bg-card: #ffffff;
+  --bg-card-hover: #ffffff;
+  --bg-card-elevated: #ffffff;
+  --bg-card-solid: #ffffff;
+  --bg-surface-secondary: #eef1f5;
+  --bg-surface-tertiary: #e2e6eb;
+  --bg-surface-input: #ffffff;
+  --bg-surface-active: #e6ebf2;
+
+  /* Borders */
+  --border-subtle: #e2e6eb;
+  --border-subtle-rgb: 226, 230, 235;
+  --border-hover: #c59b27;
+  --border-focus: #b88d18;
+  --border-gold: rgba(197, 155, 39, 0.32);
+  --border-silver: #d5dae2;
+
+  /* Text */
+  --text-primary: #111827;
+  --text-secondary: #475569;
+  --text-muted: #8c9ba5;
+  --text-inverse: #ffffff;
+  --text-gold: #b88d18;
+
+  /* Restrained Metallic Light Gold */
+  --color-gold: #c59b27;
+  --color-gold-hover: #b88d18;
+  --color-gold-light: #dfbe76;
+  --color-gold-glow: rgba(197, 155, 39, 0.12);
+  --color-gold-subtle: rgba(197, 155, 39, 0.08);
+  --color-gold-border: rgba(197, 155, 39, 0.3);
+  --color-gold-surface: rgba(197, 155, 39, 0.06);
+
+  --color-energy: #c59b27;
+  --color-energy-glow: rgba(197, 155, 39, 0.12);
+
+  /* Electrical Parameter Accents */
+  --color-voltage: #0284c7;
+  --color-voltage-glow: rgba(2, 132, 199, 0.08);
+
+  --color-current: #7c3aed;
+  --color-current-glow: rgba(124, 58, 237, 0.08);
+
+  --color-power: #c59b27;
+  --color-power-glow: rgba(197, 155, 39, 0.1);
+
+  --color-frequency: #0891b2;
+  --color-frequency-glow: rgba(8, 145, 178, 0.08);
+
+  --color-powerfactor: #db2777;
+  --color-powerfactor-glow: rgba(219, 39, 119, 0.08);
+
+  /* Status Accents */
+  --color-success: #059669;
+  --color-success-bg: rgba(5, 150, 105, 0.09);
+  --color-warning: #d97706;
+  --color-warning-bg: rgba(217, 119, 6, 0.09);
+  --color-danger: #dc2626;
+  --color-danger-bg: rgba(220, 38, 38, 0.09);
+  --color-info: #0284c7;
+  --color-info-bg: rgba(2, 132, 199, 0.09);
+
+  /* Shadows - Layered Light SaaS */
+  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 8px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.08), 0 4px 8px -2px rgba(15, 23, 42, 0.03);
+  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-card-hover: 0 8px 20px -4px rgba(15, 23, 42, 0.09), 0 0 0 1px rgba(197, 155, 39, 0.28);
+  --shadow-glow-gold: 0 0 16px rgba(197, 155, 39, 0.14);
+  --shadow-glow-green: 0 0 16px rgba(5, 150, 105, 0.14);
+  --shadow-glow-amber: 0 0 16px rgba(217, 119, 6, 0.14);
+}

@@ -1,0 +1,308 @@
+/**
+ * ============================================================================
+ * WATTVISION - CINEMATIC PRESENTATION DESIGN SYSTEM
+ * ============================================================================
+ * Dark energy-tech visual aesthetics for the keynote product presentation.
+ */
+
+:root {
+  --pres-bg-deep: #05080f;
+  --pres-bg-card: rgba(13, 20, 36, 0.75);
+  --pres-border: rgba(56, 189, 248, 0.18);
+  --pres-border-hover: rgba(56, 189, 248, 0.45);
+  --pres-cyan: #06b6d4;
+  --pres-sky: #38bdf8;
+  --pres-emerald: #10b981;
+  --pres-amber: #f59e0b;
+  --pres-rose: #f43f5e;
+  --pres-text-primary: #f8fafc;
+  --pres-text-secondary: #94a3b8;
+  --pres-text-muted: #64748b;
+  --pres-glow-cyan: 0 0 24px rgba(6, 182, 212, 0.35);
+  --pres-glow-emerald: 0 0 24px rgba(16, 185, 129, 0.35);
+  --pres-glow-amber: 0 0 24px rgba(245, 158, 11, 0.35);
+}
+
+/* Master Presentation Container */
+.presentation-viewport {
+  width: 100vw;
+  height: 100vh;
+  background-color: var(--pres-bg-deep);
+  background-image: 
+    radial-gradient(circle at 50% 15%, rgba(6, 182, 212, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 80% 85%, rgba(16, 185, 129, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 20% 85%, rgba(168, 85, 247, 0.05) 0%, transparent 50%);
+  color: var(--pres-text-primary);
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Background Ambient Grid */
+.presentation-grid-bg {
+  position: absolute;
+  inset: 0;
+  background-size: 48px 48px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Slide Stage */
+.presentation-slide-stage {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 3rem 5rem 3rem;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
+}
+
+/* Slide Card Frame */
+.pres-content-wrapper {
+  width: 100%;
+  max-width: 1240px;
+  max-height: calc(100vh - 10rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Slide Headers */
+.pres-slide-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  background: rgba(6, 182, 212, 0.12);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  color: var(--pres-cyan);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.pres-slide-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.85rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0 0 0.5rem 0;
+}
+
+.pres-slide-subtitle {
+  font-size: clamp(0.95rem, 1.35vw, 1.15rem);
+  color: var(--pres-text-secondary);
+  line-height: 1.5;
+  max-width: 720px;
+  margin: 0 0 1.75rem 0;
+}
+
+/* Glass Panels */
+.pres-glass-card {
+  background: var(--pres-bg-card);
+  border: 1px solid var(--pres-border);
+  border-radius: 14px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: all 0.25s ease;
+}
+
+.pres-glass-card:hover {
+  border-color: var(--pres-border-hover);
+  box-shadow: 0 12px 40px rgba(6, 182, 212, 0.12);
+}
+
+/* Top Branding & Status Bar */
+.pres-topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  z-index: 50;
+  background: linear-gradient(to bottom, rgba(5, 8, 15, 0.95), transparent);
+  pointer-events: auto;
+}
+
+.pres-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #fff;
+}
+
+.pres-topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Bottom Controls Overlay */
+.pres-bottom-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2.5rem;
+  z-index: 50;
+  background: linear-gradient(to top, rgba(5, 8, 15, 0.95), transparent);
+  pointer-events: auto;
+}
+
+/* Slide Progress Bar */
+.pres-progress-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  z-index: 60;
+}
+
+.pres-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #06b6d4, #10b981, #38bdf8);
+  box-shadow: 0 0 10px rgba(6, 182, 212, 0.8);
+  transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Control Buttons */
+.pres-btn-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pres-btn-icon:hover {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: rgba(6, 182, 212, 0.5);
+  color: #38bdf8;
+  transform: translateY(-1px);
+}
+
+.pres-btn-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pres-btn-nav:hover:not(:disabled) {
+  background: rgba(6, 182, 212, 0.2);
+  border-color: rgba(6, 182, 212, 0.5);
+  color: #38bdf8;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+}
+
+.pres-btn-nav:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* Slide Index Drawer */
+.pres-drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pres-drawer-modal {
+  width: 90%;
+  max-width: 900px;
+  max-height: 85vh;
+  background: #090e1a;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 16px;
+  padding: 2rem;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+/* Animations */
+@keyframes presPulse {
+  0%, 100% { transform: scale(1); opacity: 0.85; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+
+@keyframes presDataFlow {
+  0% { stroke-dashoffset: 24; }
+  100% { stroke-dashoffset: 0; }
+}
+
+.pres-pulsing-node {
+  animation: presPulse 2.4s infinite ease-in-out;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Responsive Mobile Layouts */
+@media (max-width: 768px) {
+  .presentation-slide-stage {
+    padding: 4rem 1.25rem 4.5rem 1.25rem;
+  }
+  .pres-topbar, .pres-bottom-controls {
+    padding: 0 1.25rem;
+  }
+  .pres-slide-title {
+    font-size: 1.6rem;
+  }
+  .pres-hide-mobile {
+    display: none !important;
+  }
+}

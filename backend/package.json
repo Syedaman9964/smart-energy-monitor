@@ -1,0 +1,29 @@
+{
+  "name": "wattvision-backend",
+  "version": "2.1.0",
+  "description": "Smart Energy Monitor & Analytics Platform - Backend REST API & WebSocket Telemetry Gateway",
+  "main": "src/server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "iot",
+    "esp32",
+    "pzem004t",
+    "smart-energy",
+    "discom-billing",
+    "express",
+    "websocket"
+  ],
+  "author": "Team",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  }
+}
