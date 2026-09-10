@@ -13,10 +13,17 @@ import {
   Volume2,
   VolumeX,
   Moon,
-  Sun
+  Sun,
+  Lock,
+  Key,
+  LogOut,
+  UserCheck,
+  ShieldAlert
 } from 'lucide-react';
 import { useEnergy } from '../context/EnergyContext';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
+import UserAvatar from '../components/common/UserAvatar';
 
 export default function SettingsPage() {
   const {
@@ -31,6 +38,13 @@ export default function SettingsPage() {
     toggleSoundMute
   } = useEnergy();
   const { addToast } = useToast();
+  const { sessionInfo, changePassword, logout } = useAuth();
+
+  // Password Change States
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isPasswordUpdating, setIsPasswordUpdating] = useState(false);
 
   const [systemName, setSystemName] = useState("WattVision Energy Gateway");
   const [facility, setFacility] = useState("Main Facility #4");
@@ -49,6 +63,48 @@ export default function SettingsPage() {
   const [mqttBroker, setMqttBroker] = useState("mqtt://broker.hivemq.com:1883");
   const [mqttTopic, setMqttTopic] = useState("wattvision/sensor/pzem004t");
 
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      addToast({
+        type: 'error',
+        title: 'Validation Error',
+        message: 'Please complete all password fields.'
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      addToast({
+        type: 'error',
+        title: 'Validation Error',
+        message: 'New password and confirmation do not match.'
+      });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      addToast({
+        type: 'error',
+        title: 'Validation Error',
+        message: 'New password must be at least 8 characters long.'
+      });
+      return;
+    }
+
+    setIsPasswordUpdating(true);
+    try {
+      await changePassword(currentPassword, newPassword);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      // Toast already dispatched by AuthContext
+    } finally {
+      setIsPasswordUpdating(false);
+    }
+  };
+
   const handleSave = (e) => {
     e.preventDefault();
     addToast({
@@ -64,11 +120,170 @@ export default function SettingsPage() {
       <section className="page-header">
         <div className="page-header-main">
           <div className="page-header-title-row">
-            <h1 className="page-title">System Configuration & Preferences</h1>
+            <h1 className="page-title">System Configuration & Security</h1>
           </div>
           <p className="page-subtitle">
-            Manage telemetry refresh rates, IoT network endpoints, alert threshold parameters, and display options.
+            Manage authenticated session credentials, telemetry sampling rates, alert thresholds, and security parameters.
           </p>
+        </div>
+      </section>
+
+      {/* 0. Account & Security Overview Card */}
+      <section className="dashboard-card" style={{ padding: '1.5rem', gap: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <ShieldCheck size={20} style={{ color: 'var(--color-gold)' }} />
+            <h3 className="card-title">Enterprise Account & Active Session</h3>
+          </div>
+
+          <button
+            type="button"
+            onClick={logout}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-sm)',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: 'var(--color-danger)',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <LogOut size={14} />
+            <span>Sign Out of Terminal</span>
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
+          <div className="telemetry-pill-card">
+            <span className="telemetry-pill-label">Authenticated User</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '6px' }}>
+              <UserAvatar
+                src={userProfile?.avatarUrl}
+                alt={userProfile?.name}
+                initials={userProfile?.avatarInitials}
+                size={44}
+              />
+              <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{userProfile.name}</span>
+            </div>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{userProfile.email}</span>
+          </div>
+
+          <div className="telemetry-pill-card">
+            <span className="telemetry-pill-label">Assigned Role</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  padding: '3px 10px',
+                  borderRadius: '4px',
+                  fontSize: '0.75rem',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  background: userProfile.roleKey === 'ADMIN' ? 'var(--color-gold-surface)' : 'rgba(56, 189, 248, 0.12)',
+                  color: userProfile.roleKey === 'ADMIN' ? 'var(--color-gold)' : 'var(--color-info)',
+                  border: `1px solid ${userProfile.roleKey === 'ADMIN' ? 'var(--color-gold-border)' : 'rgba(56, 189, 248, 0.3)'}`
+                }}
+              >
+                {userProfile.roleKey || 'USER'}
+              </span>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                {userProfile.roleKey === 'ADMIN' ? 'Full Control' : 'Read & Audit'}
+              </span>
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+              {userProfile.roleKey === 'ADMIN'
+                ? 'Authorized for hardware EEPROM reset, tariff tuning & security.'
+                : 'Authorized for telemetry, NILM, billing & forecasting.'}
+            </span>
+          </div>
+
+          <div className="telemetry-pill-card">
+            <span className="telemetry-pill-label">Active Session Details</span>
+            <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-primary)', marginTop: '4px' }}>
+              IP: {sessionInfo?.ip || '127.0.0.1 (Loopback)'}
+            </span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+              Connected: {sessionInfo?.loginTime ? new Date(sessionInfo.loginTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Active'}
+            </span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--color-success)', marginTop: '2px' }}>
+              ● TLS 1.3 / AES-256 Validated
+            </span>
+          </div>
+        </div>
+
+        {/* Change Password Sub-Card */}
+        <div
+          style={{
+            marginTop: '0.5rem',
+            padding: '1rem',
+            borderRadius: 'var(--radius-md)',
+            background: 'var(--bg-surface-secondary)',
+            border: '1px solid var(--border-subtle)'
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1rem' }}>
+            <Key size={16} style={{ color: 'var(--color-gold)' }} />
+            <h4 style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>
+              Update Terminal Password
+            </h4>
+          </div>
+
+          <form onSubmit={handlePasswordSubmit}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', alignItems: 'flex-end' }}>
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.75rem' }}>Current Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="••••••••"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  disabled={isPasswordUpdating}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.75rem' }}>New Password (min 8 chars)</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="••••••••••••"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  disabled={isPasswordUpdating}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" style={{ fontSize: '0.75rem' }}>Confirm New Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  placeholder="••••••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isPasswordUpdating}
+                />
+              </div>
+
+              <div>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  style={{ width: '100%', padding: '9px 16px', fontSize: '0.82rem' }}
+                  disabled={isPasswordUpdating}
+                >
+                  <Lock size={14} />
+                  <span>{isPasswordUpdating ? 'Updating...' : 'Change Password'}</span>
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </section>
 

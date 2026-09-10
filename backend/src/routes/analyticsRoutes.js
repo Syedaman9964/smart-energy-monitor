@@ -1,8 +1,12 @@
 import express from 'express';
 import db from '../models/db.js';
 import config from '../config/index.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Enforce authentication across all analytics endpoints
+router.use(requireAuth);
 
 // Appliance Breakdown & Disaggregation
 router.get('/appliances', (req, res) => {

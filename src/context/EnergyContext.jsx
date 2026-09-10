@@ -3,18 +3,21 @@ import telemetryService from '../services/telemetryService';
 import apiService from '../services/apiService';
 import audioService from '../services/audioService';
 import { useToast } from './ToastContext';
+import { useAuth } from './AuthContext';
 
 const EnergyContext = createContext(null);
 
 export function EnergyProvider({ children }) {
   const { addToast } = useToast();
+  const { user } = useAuth();
 
-  // Navigation & View state synchronized with browser URL path (/presentation, /landing, /dashboard)
+  // Navigation & View state synchronized with browser URL path (/presentation, /landing, /login, /dashboard)
   const [activePage, setActivePageState] = useState(() => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.replace(/^\//, '').toLowerCase();
       if (path === 'presentation') return 'presentation';
       if (path === 'landing') return 'landing';
+      if (path === 'login') return 'login';
       if (path && ['dashboard', 'live', 'flow', 'analytics', 'prediction', 'appliances', 'devices', 'alerts', 'history', 'reports', 'tariff', 'carbon', 'settings', 'docs'].includes(path)) {
         return path;
       }
@@ -115,14 +118,28 @@ export function EnergyProvider({ children }) {
   // Anomaly sound cooldown ref
   const lastSoundTimeRef = useRef(0);
 
-  // User Profile
-  const [userProfile] = useState({
-    name: "Syed Aman",
-    email: "syed.aman@wattvision.in",
-    role: "System Administrator",
-    avatarInitials: "SA",
-    facility: "Smart Home — Bengaluru"
-  });
+  // User Profile derived from real authenticated session
+  const userProfile = user ? {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role === 'ADMIN' ? 'System Administrator' : 'Energy Analyst',
+    roleKey: user.role,
+    avatarInitials: user.avatarInitials || 'SA',
+    avatarUrl: user.avatarUrl || (user.id === 'usr-admin-01' || user.email?.includes('admin') || user.name?.includes('Syed') ? '/assets/syed-aman-avatar.png' : null),
+    facility: user.facility || 'Bengaluru Energy Terminal',
+    lastLogin: user.lastLogin
+  } : {
+    id: 'guest',
+    name: 'Guest User',
+    email: 'guest@wattvision.energy',
+    role: 'Viewer',
+    roleKey: 'USER',
+    avatarInitials: 'GU',
+    avatarUrl: null,
+    facility: 'Unauthenticated Terminal',
+    lastLogin: null
+  };
 
   // Sync theme with DOM data-theme attribute
   useEffect(() => {

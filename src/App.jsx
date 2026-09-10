@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ToastProvider } from './context/ToastContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { EnergyProvider, useEnergy } from './context/EnergyContext';
 import AppShell from './components/layout/AppShell';
+import { WattVisionLogo } from './assets/logo';
 
 // Specialized Feature Pages
 import DashboardPage from './pages/DashboardPage';
@@ -20,6 +22,7 @@ import SettingsPage from './pages/SettingsPage';
 import DocumentationPage from './pages/DocumentationPage';
 import LandingPage from './pages/LandingPage';
 import PresentationPage from './pages/PresentationPage';
+import LoginPage from './pages/LoginPage';
 
 // Global CSS Architecture
 import './styles/variables.css';
@@ -28,21 +31,89 @@ import './styles/layout.css';
 import './styles/components.css';
 import './styles/dashboard.css';
 import './styles/pages.css';
+import './styles/login.css';
 
 /**
- * Main Dynamic Page Router
+ * Main Dynamic Page Router with Enterprise Authentication Barrier
  */
 function MainRouter() {
-  const { activePage } = useEnergy();
+  const { isAuthenticated, isLoading } = useAuth();
+  const { activePage, setActivePage } = useEnergy();
+  const [returnTarget, setReturnTarget] = useState(null);
 
+  // Remember attempted protected destination when unauthenticated
+  useEffect(() => {
+    if (!isAuthenticated && activePage !== 'login' && activePage !== 'presentation' && activePage !== 'landing') {
+      setReturnTarget(activePage);
+    }
+  }, [activePage, isAuthenticated]);
+
+  // If authenticated user visits /login, redirect to target or dashboard
+  useEffect(() => {
+    if (isAuthenticated && activePage === 'login') {
+      setActivePage(returnTarget || 'dashboard');
+    }
+  }, [isAuthenticated, activePage, returnTarget, setActivePage]);
+
+  // Presentation Keynote is ALWAYS public and UNTOUCHED
   if (activePage === 'presentation') {
     return <PresentationPage />;
   }
 
+  // Public Landing Page
   if (activePage === 'landing') {
     return <LandingPage />;
   }
 
+  // Initial Auth Session Restoration Screen
+  if (isLoading) {
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          width: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '16px',
+          backgroundColor: 'var(--bg-app, #121519)',
+          color: 'var(--text-primary, #f8fafc)'
+        }}
+      >
+        <WattVisionLogo size={46} showText={true} />
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: 'var(--color-gold, #d4af37)',
+            fontSize: '0.82rem',
+            fontWeight: 500,
+            letterSpacing: '0.02em'
+          }}
+        >
+          <span className="login-spinner" style={{ width: '13px', height: '13px' }} />
+          <span>Restoring Secure Gateway Session...</span>
+        </div>
+      </main>
+    );
+  }
+
+  // Unauthenticated Barrier: All protected routes redirect to Login
+  if (!isAuthenticated) {
+    return (
+      <LoginPage
+        onLoginSuccess={() => {
+          const target = returnTarget || 'dashboard';
+          setReturnTarget(null);
+          setActivePage(target);
+        }}
+      />
+    );
+  }
+
+  // Authenticated Dynamic Page Renderer
   const renderPage = () => {
     switch (activePage) {
       case 'dashboard':
@@ -87,9 +158,11 @@ function MainRouter() {
 export default function App() {
   return (
     <ToastProvider>
-      <EnergyProvider>
-        <MainRouter />
-      </EnergyProvider>
+      <AuthProvider>
+        <EnergyProvider>
+          <MainRouter />
+        </EnergyProvider>
+      </AuthProvider>
     </ToastProvider>
   );
 }

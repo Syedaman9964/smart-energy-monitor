@@ -178,6 +178,7 @@ input:focus, select:focus, textarea:focus {
   justify-content: space-between;
   gap: 1.25rem;
   flex-wrap: wrap;
+  margin-bottom: 1.25rem;
   padding-bottom: 0.25rem;
 }
 

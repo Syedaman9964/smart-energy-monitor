@@ -17,7 +17,22 @@ export const config = {
     ? (process.env.CORS_ORIGIN.includes(',')
         ? process.env.CORS_ORIGIN.split(',').map(s => s.trim())
         : process.env.CORS_ORIGIN.trim())
-    : '*',
+    : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:5000'],
+
+  // Authentication & Session Security
+  jwtSecret: process.env.JWT_SECRET || 'wattvision-production-jwt-secret-key-2026',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
+  cookieSecret: process.env.COOKIE_SECRET || 'wattvision-cookie-signing-secret-2026',
+
+  // Initial Seed Accounts (Environment Configurable, Defaulted for Demo)
+  adminUsername: (process.env.ADMIN_USERNAME || 'Syedaman').trim(),
+  adminEmail: (process.env.ADMIN_EMAIL || 'admin@wattvision.energy').toLowerCase().trim(),
+  adminPassword: process.env.ADMIN_PASSWORD || 'WattVision2026!Admin',
+  adminName: process.env.ADMIN_NAME || 'Syed Aman',
+  
+  userEmail: (process.env.USER_EMAIL || 'user@wattvision.energy').toLowerCase().trim(),
+  userPassword: process.env.USER_PASSWORD || 'WattVision2026!User',
+  userName: process.env.USER_NAME || 'Energy Analyst',
 
   // Device Authentication / Secret
   deviceSecretKey: process.env.DEVICE_SECRET_KEY || 'wattvision-iot-key-2026',

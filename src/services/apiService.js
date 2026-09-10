@@ -3,8 +3,11 @@
  * WATT VISION - API SERVICE (REST & WEBSOCKET CLIENT ABSTRACTION)
  * ============================================================================
  * Handles HTTP REST requests and WebSocket connections to the backend server
- * or physical ESP32 gateway, with seamless auto-discovery and automatic fallback
- * to high-fidelity benchtop simulation when offline.
+ * or physical ESP32 gateway with production credentials handling:
+ *   - credentials: 'include' for secure HTTP-only cookies
+ *   - Authorization header fallback
+ *   - Authenticated WebSocket telemetry streaming
+ *   - Automatic fallback to high-fidelity benchtop simulation when offline.
  */
 
 import telemetryService from './telemetryService';
@@ -22,7 +25,6 @@ class ApiService {
     if (envApi && envApi.trim() !== '') {
       this.baseUrl = envApi.trim().replace(/\/$/, '');
     } else if (typeof window !== 'undefined') {
-      // Relative base URL allows reverse proxies (Nginx, Caddy, Vercel rewrites) to work out-of-the-box
       this.baseUrl = '';
     } else {
       this.baseUrl = 'http://localhost:5000';
@@ -48,6 +50,20 @@ class ApiService {
     if (typeof window !== 'undefined') {
       setTimeout(() => this.checkBackendHealth(), 100);
     }
+  }
+
+  getAuthHeaders(extra = {}) {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...extra
+    };
+    if (typeof window !== 'undefined') {
+      const token = localStorage.getItem('wattvision_auth_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    return headers;
   }
 
   /**
@@ -84,6 +100,7 @@ class ApiService {
       const response = await fetch(`${this.baseUrl}/api/health`, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         signal: AbortSignal.timeout(2500)
       });
 
@@ -106,7 +123,6 @@ class ApiService {
 
   /**
    * Set dynamic base URL from dashboard settings page
-   * @param {string} url - Base URL e.g. http://192.168.1.150:5000
    */
   setBaseUrl(url) {
     this.baseUrl = url || '';
@@ -147,7 +163,8 @@ class ApiService {
     try {
       const response = await fetch(`${this.baseUrl}/api/telemetry/live`, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.getAuthHeaders(),
+        credentials: 'include',
         signal: AbortSignal.timeout(3000)
       });
 
@@ -157,7 +174,7 @@ class ApiService {
 
       return await response.json();
     } catch (err) {
-      console.warn('[ApiService] Failed to reach backend live endpoint. Using simulation.', err.message);
+      console.warn('[ApiService] Live telemetry endpoint inaccessible. Using simulation mode.', err.message);
       return telemetryService.getLatestTelemetry();
     }
   }
@@ -173,6 +190,8 @@ class ApiService {
 
     try {
       const response = await fetch(`${this.baseUrl}/api/device/health`, {
+        headers: this.getAuthHeaders(),
+        credentials: 'include',
         signal: AbortSignal.timeout(3000)
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -184,10 +203,8 @@ class ApiService {
   }
 
   /**
-   * Posts updated tariff configurations to backend / ESP32:
-   * POST /api/tariff/config
-   * 
-   * @param {Object} config - Tariff rates & taxes
+   * Posts updated tariff configurations to backend:
+   * POST /api/tariff/current
    */
   async updateTariffConfig(config) {
     telemetryService.updateTariff(config);
@@ -197,22 +214,20 @@ class ApiService {
     }
 
     try {
-      const response = await fetch(`${this.baseUrl}/api/tariff/config`, {
+      const response = await fetch(`${this.baseUrl}/api/tariff/current`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: this.getAuthHeaders(),
+        credentials: 'include',
         body: JSON.stringify(config)
       });
       return await response.json();
     } catch (err) {
-      return { success: true, message: 'Local simulation updated (Hardware offline)' };
+      return { success: true, message: 'Local simulation updated (Backend unreachable or unauthorized)' };
     }
   }
 
   /**
    * Subscribes to real-time telemetry stream via WebSocket or simulated interval
-   * 
-   * @param {Function} callback - Telemetry update handler
-   * @returns {Function} Unsubscribe cleanup function
    */
   subscribeToTelemetry(callback) {
     let localUnsubscribe = null;
@@ -242,10 +257,19 @@ class ApiService {
       }
 
       try {
-        const ws = new WebSocket(this.wsUrl);
+        const token = localStorage.getItem('wattvision_auth_token');
+        const wsUrlWithToken = token ? `${this.wsUrl}?token=${encodeURIComponent(token)}` : this.wsUrl;
+
+        const ws = new WebSocket(wsUrlWithToken);
         this.wsConnection = ws;
 
         ws.onopen = () => {
+          // Send explicit authentication payload upon connection
+          if (token) {
+            try {
+              ws.send(JSON.stringify({ type: 'AUTH', token }));
+            } catch (e) {}
+          }
           this.isRealHardwareConnected = true;
           this.connectionState = 'ONLINE';
           this.notifyConnectionChange();
@@ -255,9 +279,14 @@ class ApiService {
         ws.onmessage = (event) => {
           try {
             const parsed = JSON.parse(event.data);
+
+            if (parsed.type === 'AUTH_FAILED') {
+              console.warn('[ApiService WS] Authentication failed on telemetry gateway.');
+              return;
+            }
+
             if (parsed.type === 'TELEMETRY_UPDATE' || parsed.type === 'SNAPSHOT') {
               const raw = parsed.data || {};
-              // Format into shape expected by UI
               const voltage = raw.voltage ?? 230.0;
               const power = raw.power ?? 1800;
               const current = raw.current ?? +(power / (voltage * 0.95)).toFixed(2);
@@ -313,11 +342,17 @@ class ApiService {
           startLocalSimulation();
         };
 
-        ws.onclose = () => {
+        ws.onclose = (ev) => {
           this.isRealHardwareConnected = false;
           this.connectionState = 'OFFLINE_SIMULATED';
           this.notifyConnectionChange();
           startLocalSimulation();
+
+          // Don't spam reconnection if server rejected with 4401 unauthorized
+          if (ev.code === 4401) {
+            console.warn('[ApiService WS] Telemetry socket closed: Unauthorized (4401).');
+            return;
+          }
 
           // Try reconnecting after 5 seconds if still subscribed
           if (isSubscribed && !this.forcedSimulation) {
@@ -332,7 +367,6 @@ class ApiService {
       }
     };
 
-    // If already online or checking, try WS, else fallback
     connectWebSocket();
 
     return () => {

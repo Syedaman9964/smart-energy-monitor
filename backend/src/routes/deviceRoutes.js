@@ -1,7 +1,11 @@
 import express from 'express';
 import db from '../models/db.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Enforce authentication across all device endpoints
+router.use(requireAuth);
 
 // MCU & Hardware Health Metrics
 router.get('/health', (req, res) => {
@@ -16,13 +20,15 @@ router.get('/health', (req, res) => {
   }
 });
 
-// Issue PZEM EEPROM Energy Reset Command
-router.post('/pzem/reset', (req, res) => {
+// Issue PZEM EEPROM Energy Reset Command (Admin Only)
+router.post('/pzem/reset', requireRole('ADMIN'), (req, res) => {
   try {
     const current = db.getLatestTelemetry();
     current.energy = 0.0;
     current.energyToday = 0.0;
     db.setLatestTelemetry(current);
+
+    console.log(`[DEVICE] PZEM registers reset by admin '${req.user.email}'`);
 
     res.json({
       success: true,

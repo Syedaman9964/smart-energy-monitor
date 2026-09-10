@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useEnergy } from '../../context/EnergyContext';
 import { WattVisionLogo } from '../../assets/logo';
+import UserAvatar from '../common/UserAvatar';
 
 export default function Sidebar() {
   const {
@@ -135,19 +136,35 @@ export default function Sidebar() {
         )}
 
         {/* User profile summary */}
-        {!isSidebarCollapsed && (
+        {!isSidebarCollapsed ? (
           <div
             className="sidebar-user-pill"
             onClick={() => setActivePage('settings')}
             title="Account Settings"
           >
-            <div className="user-avatar-circle">
-              {userProfile.avatarInitials}
-            </div>
+            <UserAvatar
+              src={userProfile?.avatarUrl}
+              alt={userProfile?.name}
+              initials={userProfile?.avatarInitials}
+              size={36}
+            />
             <div className="user-info-text">
               <span className="user-name">{userProfile.name}</span>
               <span className="user-role">{userProfile.role}</span>
             </div>
+          </div>
+        ) : (
+          <div
+            style={{ display: 'flex', justifyContent: 'center', padding: '6px 0', cursor: 'pointer' }}
+            onClick={() => setActivePage('settings')}
+            title={`Account Settings (${userProfile?.name})`}
+          >
+            <UserAvatar
+              src={userProfile?.avatarUrl}
+              alt={userProfile?.name}
+              initials={userProfile?.avatarInitials}
+              size={34}
+            />
           </div>
         )}
       </div>

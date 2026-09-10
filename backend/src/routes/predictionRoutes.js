@@ -4,8 +4,12 @@ import {
   get30DayPrediction,
   postScenarioSimulation
 } from '../controllers/predictionController.js';
+import { requireAuth } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Enforce authentication across all prediction endpoints
+router.use(requireAuth);
 
 // 24-Hour Ahead AI Predictive Load Curve
 router.get('/24h', get24HourPrediction);
