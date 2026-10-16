@@ -308,6 +308,102 @@
   line-height: 1.45;
 }
 
+/* Demo Quick Entry Box */
+.login-demo-entry-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md, 12px);
+  background: rgba(212, 175, 55, 0.06);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.login-demo-entry-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--color-gold, #d4af37);
+}
+
+.demo-live-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-gold, #d4af37);
+  box-shadow: 0 0 8px var(--color-gold, #d4af37);
+  animation: pulse-gold 2s infinite ease-in-out;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+.login-quick-demo-btn {
+  height: 44px;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.22) 0%, rgba(212, 175, 55, 0.12) 100%);
+  color: var(--text-primary, #ffffff);
+  font-family: var(--font-sans, sans-serif);
+  font-weight: 700;
+  font-size: 0.88rem;
+  border: 1px solid rgba(212, 175, 55, 0.45);
+  border-radius: var(--radius-sm, 8px);
+  cursor: pointer;
+  transition: all var(--transition-fast, 0.15s ease);
+}
+
+.login-quick-demo-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.35) 0%, rgba(212, 175, 55, 0.2) 100%);
+  border-color: var(--color-gold, #d4af37);
+  box-shadow: 0 0 16px rgba(212, 175, 55, 0.28);
+  transform: translateY(-1px);
+}
+
+.login-quick-demo-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-demo-hint {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--text-muted, #94a3b8);
+  line-height: 1.35;
+}
+
+/* Or Divider */
+.login-or-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0.25rem 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.divider-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-muted, #64748b);
+  text-transform: uppercase;
+}
+
 /* Error Alert */
 .login-error-alert {
   display: flex;

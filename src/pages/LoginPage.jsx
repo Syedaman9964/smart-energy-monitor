@@ -51,30 +51,51 @@ export default function LoginPage({ onLoginSuccess }) {
   const [errorMessage, setErrorMessage] = useState('');
 
   const getSpeechBubbleText = () => {
-    if (status === 'loading') return 'Validating telemetry credentials...';
-    if (status === 'success') return 'Access granted! Welcome, Syedaman! 🚀';
+    if (status === 'loading') return 'Opening WattVision Demo Gateway... 🚀';
+    if (status === 'success') return 'Access granted! Welcome, Syedaman! ✨';
     if (status === 'error') return 'Credentials mismatch detected';
     if (isCoveringEyes) return "I won't look at your password! 🙈";
     if (isUsernameFocused) return "Who's logging in? Syedaman?";
     if (catReactionText) return catReactionText;
-    return 'Terminal ready for Syedaman';
+    return 'Demo ready! Click Enter Demo or sign in';
+  };
+
+  const handleQuickDemoLogin = async () => {
+    if (status === 'loading' || status === 'success') return;
+    setStatus('loading');
+    setErrorMessage('');
+    setUsername('Syedaman');
+    setPassword('demo-session');
+
+    try {
+      await login('Syedaman', 'demo-session', true);
+      setStatus('success');
+
+      setTimeout(() => {
+        if (onLoginSuccess) {
+          onLoginSuccess();
+        } else {
+          setActivePage('dashboard');
+        }
+      }, 750);
+    } catch (err) {
+      setStatus('error');
+      setErrorMessage('Could not initialize demo session.');
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (status === 'loading' || status === 'success') return;
 
-    if (!username.trim() || !password.trim()) {
-      setStatus('error');
-      setErrorMessage('Username and password are required.');
-      return;
-    }
+    const enteredUser = username.trim() || 'Syedaman';
+    const enteredPass = password.trim() || 'demo';
 
     setStatus('loading');
     setErrorMessage('');
 
     try {
-      await login(username.trim(), password, rememberMe);
+      await login(enteredUser, enteredPass, rememberMe);
       setStatus('success');
 
       // Brief transition delay to show success state and happy companion animation
@@ -170,6 +191,34 @@ export default function LoginPage({ onLoginSuccess }) {
               Secure access to your intelligent energy control room.
             </p>
           </header>
+
+          {/* Prominent 1-Click Demo Entry Card */}
+          <div className="login-demo-entry-box">
+            <div className="login-demo-entry-badge">
+              <span className="demo-live-dot" />
+              <span>COLLEGE DEMO MODE • SIMULATED DATA</span>
+            </div>
+            <button
+              type="button"
+              id="enter-demo-button"
+              className="login-quick-demo-btn"
+              onClick={handleQuickDemoLogin}
+              disabled={status === 'loading' || status === 'success'}
+            >
+              <Sparkles size={16} className="text-gold" />
+              <span>Enter Demo (1-Click Instant Access)</span>
+              <ArrowRight size={16} className="btn-arrow-icon" />
+            </button>
+            <p className="login-demo-hint">
+              Loads full energy dashboard with fixed simulated telemetries. No credentials required.
+            </p>
+          </div>
+
+          <div className="login-or-divider">
+            <span className="divider-line" />
+            <span className="divider-text">OR TEST CREDENTIALS</span>
+            <span className="divider-line" />
+          </div>
 
           {/* Error Feedback Notice */}
           {status === 'error' && (

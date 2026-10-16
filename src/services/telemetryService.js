@@ -27,9 +27,71 @@ import {
   MOCK_REPORTS
 } from '../data/mockTelemetry';
 
+/**
+ * Deterministic electrical telemetry calculation synchronized across devices by epoch time.
+ * Devices visiting at the same 2-second time window receive identical, stable readings.
+ */
+function calculateSynchronizedTelemetry(timestampMs = Date.now()) {
+  const cycle = Math.floor(timestampMs / 2000);
+
+  // Smooth harmonic oscillation for realistic live readings
+  const vHarmonic = Math.sin(cycle * 0.12);
+  const pHarmonic = Math.sin(cycle * 0.15) * 60 + Math.cos(cycle * 0.05) * 35;
+  const fHarmonic = Math.sin(cycle * 0.25) * 0.02;
+
+  // Voltage: 230.1 V ±0.5 V
+  const voltage = +(230.1 + vHarmonic * 0.5).toFixed(1);
+
+  // Active Power: 1895 W baseline (1.895 kW) with subtle ±95W natural load fluctuation
+  const power = +(1895.0 + pHarmonic).toFixed(1);
+  const powerKw = +(power / 1000).toFixed(3);
+
+  // Power Factor: High-efficiency domestic standard (0.95)
+  const powerFactor = 0.95;
+
+  // Current: I = P / (V * PF)
+  const current = +(power / (voltage * powerFactor)).toFixed(2);
+
+  // Grid Frequency: 50.00 Hz nominal (Indian DISCOM standard)
+  const frequency = +(50.00 + fHarmonic).toFixed(2);
+
+  const apparentPower = +(voltage * current).toFixed(1);
+  const reactivePower = +Math.sqrt(Math.max(0, apparentPower ** 2 - power ** 2)).toFixed(1);
+
+  // Consistent fixed energy accumulation
+  const energy = 148.53;
+  const energyToday = 12.84;
+
+  const dateObj = new Date(timestampMs);
+
+  return {
+    voltage,
+    voltageMin: 224.5,
+    voltageMax: 236.2,
+    current,
+    currentMin: 1.20,
+    currentMax: 14.80,
+    power,
+    powerKw,
+    powerMin: 320.0,
+    powerMax: 3250.0,
+    energy,
+    energyToday,
+    frequency,
+    frequencyMin: 49.88,
+    frequencyMax: 50.15,
+    powerFactor,
+    apparentPower,
+    reactivePower,
+    timestamp: dateObj.toISOString(),
+    isSimulated: true,
+    simulationMode: 'Deterministic Synchronized Demo'
+  };
+}
+
 class TelemetryService {
   constructor() {
-    this.current = { ...INITIAL_TELEMETRY };
+    this.current = calculateSynchronizedTelemetry();
     this.hardware = { ...MOCK_HARDWARE_STATUS };
     this.appliances = [...MOCK_APPLIANCES];
     this.alerts = [...MOCK_ALERTS];
@@ -38,21 +100,22 @@ class TelemetryService {
     this.historyLogs = generateTelemetryLogs(60);
     this.reports = [...MOCK_REPORTS];
 
-    // Live rolling queue (25 ticks)
+    // Live rolling queue (25 ticks) synchronized deterministically
     this.liveQueue = [];
     const now = Date.now();
     for (let i = 24; i >= 0; i--) {
-      const t = new Date(now - i * 2000);
-      const p = Math.round(1800 + Math.sin(i * 0.4) * 220 + (Math.random() - 0.5) * 80);
+      const tMs = now - i * 2000;
+      const t = new Date(tMs);
+      const snapshot = calculateSynchronizedTelemetry(tMs);
       this.liveQueue.push({
         time: t.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        timestamp: t.toISOString(),
-        power: p,
-        powerKw: +(p / 1000).toFixed(3),
-        voltage: +(230.1 + (Math.random() - 0.5) * 2.5).toFixed(1),
-        current: +(p / (230 * 0.95)).toFixed(2),
-        frequency: +(50.02 + (Math.random() - 0.5) * 0.08).toFixed(2),
-        powerFactor: 0.95
+        timestamp: snapshot.timestamp,
+        power: Math.round(snapshot.power),
+        powerKw: snapshot.powerKw,
+        voltage: snapshot.voltage,
+        current: snapshot.current,
+        frequency: snapshot.frequency,
+        powerFactor: snapshot.powerFactor
       });
     }
   }
@@ -186,72 +249,24 @@ class TelemetryService {
   }
 
   /**
-   * Real-time subscription loop with realistic AC grid fluctuations
+   * Real-time subscription loop with deterministic synchronized values
    */
   subscribe(onTickCallback, intervalMs = 2000) {
     const timer = setInterval(() => {
-      // 1. Grid Voltage with subtle harmonic variation (228V - 232V)
-      const voltage = +(229.8 + (Math.random() - 0.5) * 3.0).toFixed(1);
-
-      // 2. Fluctuating Active Power Load (e.g. 1500W to 2400W)
-      const deltaPower = (Math.random() - 0.48) * 90;
-      let power = Math.max(450, Math.min(3600, this.current.power + deltaPower));
-      power = +power.toFixed(1);
-      const powerKw = +(power / 1000).toFixed(3);
-
-      // 3. Power Factor (typically 0.93 - 0.98)
-      const powerFactor = +(0.94 + (Math.random() - 0.5) * 0.03).toFixed(2);
-
-      // 4. Current RMS: I = P / (V * PF)
-      const current = +(power / (voltage * powerFactor)).toFixed(2);
-
-      // 5. Grid Frequency (50 Hz grid +/- 0.08 Hz)
-      const frequency = +(50.02 + (Math.random() - 0.5) * 0.12).toFixed(2);
-
-      // 6. Cumulative energy consumption increment
-      const stepKwh = (power * (intervalMs / 1000)) / (3600 * 1000);
-      const energy = +(this.current.energy + stepKwh).toFixed(4);
-      const energyToday = +(this.current.energyToday + stepKwh).toFixed(3);
-
-      const apparentPower = +(voltage * current).toFixed(1);
-      const reactivePower = +Math.sqrt(Math.max(0, apparentPower**2 - power**2)).toFixed(1);
-
       const now = new Date();
-      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const nowMs = now.getTime();
+      const nextTelem = calculateSynchronizedTelemetry(nowMs);
+      this.current = nextTelem;
 
-      // Update current telemetry
-      this.current = {
-        voltage,
-        voltageMin: Math.min(this.current.voltageMin, voltage),
-        voltageMax: Math.max(this.current.voltageMax, voltage),
-        current,
-        currentMin: Math.min(this.current.currentMin, current),
-        currentMax: Math.max(this.current.currentMax, current),
-        power,
-        powerKw,
-        powerMin: Math.min(this.current.powerMin, power),
-        powerMax: Math.max(this.current.powerMax, power),
-        energy,
-        energyToday,
-        frequency,
-        frequencyMin: Math.min(this.current.frequencyMin, frequency),
-        frequencyMax: Math.max(this.current.frequencyMax, frequency),
-        powerFactor,
-        apparentPower,
-        reactivePower,
-        timestamp: now.toISOString()
-      };
-
-      // Push to live queue
       const livePoint = {
-        time: timeStr,
-        timestamp: now.toISOString(),
-        power: Math.round(power),
-        powerKw,
-        voltage,
-        current,
-        frequency,
-        powerFactor
+        time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        timestamp: nextTelem.timestamp,
+        power: Math.round(nextTelem.power),
+        powerKw: nextTelem.powerKw,
+        voltage: nextTelem.voltage,
+        current: nextTelem.current,
+        frequency: nextTelem.frequency,
+        powerFactor: nextTelem.powerFactor
       };
 
       this.liveQueue = [...this.liveQueue.slice(1), livePoint];
@@ -277,3 +292,4 @@ class TelemetryService {
 
 export const telemetryService = new TelemetryService();
 export default telemetryService;
+

@@ -1,28 +1,18 @@
 /**
  * ============================================================================
- * WATTVISION - AUTHENTICATION SERVICE
+ * WATTVISION - AUTHENTICATION SERVICE (FRONTEND DEMO MODE)
  * ============================================================================
- * Client-side authentication layer interfacing with backend Express API:
- *   - Issues requests with credentials: 'include' for secure HTTP-only cookies.
- *   - Manages in-memory token fallback for WebSocket tickets and headers.
- *   - Provides robust error parsing without exposing raw exceptions.
+ * Client-side mock authentication engine for college project demonstration:
+ *   - Enables instant 1-click or credential demo access with zero backend requirement.
+ *   - Preserves session in browser storage without exposing real passwords or secrets.
+ *   - Maintains user profile for Syed Aman (Root Admin) across the dashboard.
  */
+
+const STORAGE_KEY = 'wattvision_demo_session';
 
 class AuthService {
   constructor() {
-    // Determine base URL matching ApiService logic
-    const envApi = typeof import.meta !== 'undefined' && import.meta.env
-      ? (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL)
-      : undefined;
-
-    if (envApi && envApi.trim() !== '') {
-      this.baseUrl = envApi.trim().replace(/\/$/, '');
-    } else {
-      this.baseUrl = ''; // Relative path leverages Vite /api proxy
-    }
-
-    // Token stored for WebSocket connection and non-cookie environments
-    this.token = typeof window !== 'undefined' ? localStorage.getItem('wattvision_auth_token') : null;
+    this.token = 'wattvision_demo_jwt';
   }
 
   getToken() {
@@ -31,158 +21,124 @@ class AuthService {
 
   setToken(token) {
     this.token = token;
-    // Strict Security: Rely on HTTP-only cookies rather than persisting tokens in localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('wattvision_auth_token');
-    }
   }
 
   getHeaders(customHeaders = {}) {
-    const headers = {
+    return {
       'Content-Type': 'application/json',
       ...customHeaders
     };
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
-    }
-    return headers;
   }
 
   /**
-   * Authenticate administrator credentials
-   * POST /api/auth/login
+   * Authenticate administrator credentials (Demo mode)
    */
-  async login(usernameOrEmail, password, rememberMe = false) {
-    try {
-      const identifier = typeof usernameOrEmail === 'string' ? usernameOrEmail.trim() : '';
-      const response = await fetch(`${this.baseUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // Ensures HTTP-only cookie is set in browser
-        body: JSON.stringify({
-          username: identifier,
-          email: identifier,
-          identifier: identifier,
-          password,
-          rememberMe
-        }),
-        signal: AbortSignal.timeout(8000)
-      });
+  async login(usernameOrEmail, password, rememberMe = true) {
+    const rawInput = typeof usernameOrEmail === 'string' ? usernameOrEmail.trim() : '';
+    const cleanName = rawInput && rawInput.toLowerCase() !== 'admin' ? rawInput : 'Syed Aman';
 
-      const data = await response.json();
+    const user = {
+      id: 'usr-admin-demo',
+      username: rawInput || 'Syedaman',
+      email: 'admin@wattvision.energy',
+      name: cleanName,
+      role: 'ADMIN',
+      facility: 'Bengaluru Energy Terminal (Demo Node)',
+      avatarInitials: cleanName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'SA',
+      avatarUrl: '/assets/syed-aman-avatar.png',
+      createdAt: new Date().toISOString(),
+      lastLogin: new Date().toISOString()
+    };
 
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Authentication failed. Please check your credentials.');
+    const session = {
+      sessionId: 'sess_demo_live',
+      loginTime: new Date().toISOString(),
+      ip: '127.0.0.1 (Demo Terminal)',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Client Terminal'
+    };
+
+    const payload = JSON.stringify({ user, session });
+    if (typeof window !== 'undefined') {
+      if (rememberMe) {
+        localStorage.setItem(STORAGE_KEY, payload);
+      } else {
+        sessionStorage.setItem(STORAGE_KEY, payload);
       }
-
-      if (data.token) {
-        this.setToken(data.token);
-      }
-
-      return {
-        success: true,
-        user: data.user,
-        session: data.session,
-        token: data.token
-      };
-    } catch (err) {
-      throw err;
     }
+
+    return {
+      success: true,
+      user,
+      session,
+      token: this.token
+    };
   }
 
   /**
-   * Terminate user session and clear authentication cookie
-   * POST /api/auth/logout
+   * Terminate user session
    */
   async logout() {
-    try {
-      await fetch(`${this.baseUrl}/api/auth/logout`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        credentials: 'include',
-        signal: AbortSignal.timeout(5000)
-      });
-    } catch (e) {
-      console.warn('[AuthService] Logout request warning', e.message);
-    } finally {
-      this.setToken(null);
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(STORAGE_KEY);
     }
     return { success: true };
   }
 
   /**
-   * Fetch current authenticated user session
-   * GET /api/auth/me
+   * Fetch current authenticated user session from browser storage
    */
   async getMe() {
+    if (typeof window === 'undefined') return null;
+
     try {
-      const response = await fetch(`${this.baseUrl}/api/auth/me`, {
-        method: 'GET',
-        headers: this.getHeaders(),
-        credentials: 'include',
-        signal: AbortSignal.timeout(5000)
-      });
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          this.setToken(null);
+      const raw = localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.user) {
+          return {
+            user: parsed.user,
+            session: parsed.session || {
+              sessionId: 'sess_demo_active',
+              loginTime: new Date().toISOString(),
+              ip: '127.0.0.1 (Demo Terminal)'
+            }
+          };
         }
-        return null;
       }
-
-      const data = await response.json();
-      if (data.success && data.user) {
-        return {
-          user: data.user,
-          session: data.session
-        };
-      }
-      return null;
-    } catch (err) {
-      // Backend not reached or unauthenticated
-      return null;
+    } catch (e) {
+      // Storage parsing error, fallback to null
     }
+
+    return null;
   }
 
   /**
-   * Change current account password
-   * POST /api/auth/change-password
+   * Change current account password (Simulated success)
    */
   async changePassword(currentPassword, newPassword) {
-    const response = await fetch(`${this.baseUrl}/api/auth/change-password`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      credentials: 'include',
-      body: JSON.stringify({ currentPassword, newPassword }),
-      signal: AbortSignal.timeout(8000)
-    });
-
-    const data = await response.json();
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || 'Failed to update password.');
-    }
-    return data;
+    return {
+      success: true,
+      message: 'Demo credentials updated for current session.'
+    };
   }
 
   /**
    * Retrieve active sessions for current user
-   * GET /api/auth/sessions
    */
   async getSessions() {
-    const response = await fetch(`${this.baseUrl}/api/auth/sessions`, {
-      method: 'GET',
-      headers: this.getHeaders(),
-      credentials: 'include',
-      signal: AbortSignal.timeout(5000)
-    });
-
-    const data = await response.json();
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || 'Failed to retrieve sessions.');
-    }
-    return data.data || [];
+    return [
+      {
+        sessionId: 'sess_demo_live',
+        ip: '127.0.0.1 (Demo Terminal)',
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Browser Client',
+        createdAt: new Date().toISOString(),
+        lastActiveAt: new Date().toISOString()
+      }
+    ];
   }
 }
 
 export const authService = new AuthService();
 export default authService;
+

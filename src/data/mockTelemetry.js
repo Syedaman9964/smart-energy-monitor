@@ -269,7 +269,7 @@ export const CARBON_FACTORS = {
   monthlyTargetCo2Kg: 200.0          // Monthly target budget (India avg household)
 };
 
-// 7. Generators for Historical Trends (24h, 7d, 30d, 12m)
+// 7. Generators for Historical Trends (24h, 7d, 30d, 12m) - Deterministic for cross-device consistency
 export const generate24HourProfile = () => {
   const points = [];
   const now = new Date();
@@ -284,11 +284,11 @@ export const generate24HourProfile = () => {
     else if (hour >= 17 && hour <= 22) basePower = 2650;
     else if (hour >= 23 || hour <= 5) basePower = 400;
 
-    const jitter = (Math.random() - 0.5) * 0.25 * basePower;
+    const jitter = Math.sin(hour * 1.3) * 0.12 * basePower;
     const power = Math.max(250, Math.round(basePower + jitter));
-    const voltage = +(228.5 + (Math.random() - 0.5) * 4).toFixed(1);
+    const voltage = +(229.8 + Math.sin(hour * 0.8) * 1.5).toFixed(1);
     const current = +(power / (voltage * 0.95)).toFixed(2);
-    const powerFactor = +(0.93 + (Math.random() - 0.5) * 0.05).toFixed(2);
+    const powerFactor = +(0.95 + Math.cos(hour * 0.5) * 0.02).toFixed(2);
     const kwh = +(power / 1000).toFixed(2);
     const cost = +(kwh * (hour >= 18 && hour <= 22 ? 12.00 : 8.00)).toFixed(2);
 
@@ -314,8 +314,8 @@ export const generate24HourProfile = () => {
 export const generate7DayProfile = () => {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   return days.map((day, idx) => {
-    const kwh = +(12.2 + Math.sin(idx * 0.8) * 3.5 + Math.random() * 1.5).toFixed(2);
-    const peakPower = Math.round(2800 + Math.random() * 600);
+    const kwh = +(12.2 + Math.sin(idx * 0.8) * 2.8).toFixed(2);
+    const peakPower = Math.round(2800 + Math.sin(idx * 1.2) * 250);
     const avgPower = Math.round((kwh * 1000) / 24);
     const cost = +(kwh * 8.50).toFixed(2);
     const co2 = +(kwh * 0.82).toFixed(2);
@@ -326,7 +326,7 @@ export const generate7DayProfile = () => {
       co2: Number(co2),
       peakPower,
       avgPower,
-      efficiencyScore: Math.round(88 + Math.random() * 10)
+      efficiencyScore: Math.round(90 + Math.sin(idx) * 5)
     };
   });
 };
@@ -338,7 +338,7 @@ export const generate30DayProfile = () => {
     const d = new Date(now.getTime() - i * 86400 * 1000);
     const dayNum = d.getDate();
     const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-    const kwh = +(isWeekend ? (14.5 + Math.random() * 3) : (11.8 + Math.random() * 2.5)).toFixed(2);
+    const kwh = +(isWeekend ? (14.5 + Math.sin(i * 0.6) * 1.2) : (11.8 + Math.cos(i * 0.5) * 1.0)).toFixed(2);
     const cost = +(kwh * 8.20).toFixed(2);
     const co2 = +(kwh * 0.82).toFixed(2);
     points.push({
@@ -347,7 +347,7 @@ export const generate30DayProfile = () => {
       kwh: Number(kwh),
       cost: Number(cost),
       co2: Number(co2),
-      powerFactor: +(0.94 + (Math.random() - 0.5) * 0.04).toFixed(2)
+      powerFactor: +(0.95 + Math.sin(i * 0.4) * 0.02).toFixed(2)
     });
   }
   return points;
@@ -358,7 +358,7 @@ export const generate12MonthProfile = () => {
   // Seasonal AC summer curve & winter heating
   const baseKwh = [380, 360, 340, 420, 520, 610, 640, 620, 510, 410, 370, 390];
   return months.map((month, idx) => {
-    const kwh = Math.round(baseKwh[idx] + (Math.random() - 0.5) * 40);
+    const kwh = Math.round(baseKwh[idx] + Math.sin(idx * 0.9) * 15);
     const cost = +(kwh * 8.50).toFixed(2);
     const co2 = +(kwh * 0.82).toFixed(1);
     return {
@@ -379,11 +379,11 @@ export const generateTelemetryLogs = (count = 50) => {
     const time = new Date(now - i * 15 * 60 * 1000); // every 15 mins
     const hour = time.getHours();
     const isPeak = hour >= 18 && hour <= 22;
-    const power = Math.round((isPeak ? 2400 : 900) + (Math.random() - 0.5) * 600);
-    const voltage = +(229.5 + (Math.random() - 0.5) * 5).toFixed(1);
+    const power = Math.round((isPeak ? 2400 : 900) + Math.sin(i * 0.5) * 280);
+    const voltage = +(230.1 + Math.sin(i * 0.7) * 1.8).toFixed(1);
     const current = +(power / (voltage * 0.95)).toFixed(2);
-    const frequency = +(50.0 + (Math.random() - 0.5) * 0.18).toFixed(2);
-    const powerFactor = +(0.94 + (Math.random() - 0.5) * 0.04).toFixed(2);
+    const frequency = +(50.0 + Math.sin(i * 0.4) * 0.05).toFixed(2);
+    const powerFactor = +(0.95 + Math.cos(i * 0.3) * 0.01).toFixed(2);
     const energy = +(148.53 - (i * 0.35)).toFixed(2);
     const cost = +( (power * 0.25 / 1000) * (isPeak ? 12.00 : 8.00) ).toFixed(3);
 

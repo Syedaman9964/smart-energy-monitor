@@ -126,7 +126,7 @@ export default function DashboardPage() {
             <span className="strip-label">IoT Node Link</span>
           </div>
           <span className="strip-val font-mono">
-            {isBackendOnline ? 'Real ESP32 Gateway' : 'Precision Simulation (0.5 Hz)'}
+            {isBackendOnline ? 'Real ESP32 Gateway' : 'Simulated Demo Data (Fixed 0.5 Hz)'}
           </span>
         </div>
 
@@ -371,7 +371,7 @@ export default function DashboardPage() {
                 <h3 className="card-title">IoT Telemetry Node</h3>
               </div>
               <span className="strip-pill normal">
-                {isBackendOnline ? 'ONLINE' : 'BENCHTOP SIM'}
+                {isBackendOnline ? 'ONLINE' : 'SIMULATED DEMO'}
               </span>
             </div>
 
