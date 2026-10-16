@@ -12,7 +12,10 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const DATA_FILE = path.join(__dirname, '../../data_store.json');
+// Vercel Functions have a read-only filesystem except for /tmp (ephemeral, per instance).
+const DATA_FILE = process.env.VERCEL
+  ? path.join('/tmp', 'data_store.json')
+  : path.join(__dirname, '../../data_store.json');
 
 class DatabaseStore {
   constructor() {
